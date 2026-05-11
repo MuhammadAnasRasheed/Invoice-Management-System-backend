@@ -39,7 +39,7 @@ export class InvoiceController {
 
   getInvoiceById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const invoice = await this.invoiceService.getInvoiceById(req.params.id);
+      const invoice = await this.invoiceService.getInvoiceById(req.params.id as string);
       if (!invoice) {
         return res.status(404).json({ success: false, message: 'Invoice not found' });
       }
@@ -56,7 +56,7 @@ export class InvoiceController {
         return res.status(400).json({ success: false, message: 'Invalid status' });
       }
       
-      const invoice = await this.invoiceService.updateInvoiceStatus(req.params.id, status);
+      const invoice = await this.invoiceService.updateInvoiceStatus(req.params.id as string, status);
       res.json({ success: true, data: invoice });
     } catch (error) {
       next(error);
@@ -65,7 +65,7 @@ export class InvoiceController {
 
   deleteInvoice = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const deleted = await this.invoiceService.deleteInvoice(req.params.id);
+      const deleted = await this.invoiceService.deleteInvoice(req.params.id as string);
       if (!deleted) {
         return res.status(404).json({ success: false, message: 'Invoice not found' });
       }
