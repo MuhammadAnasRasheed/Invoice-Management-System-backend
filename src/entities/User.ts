@@ -4,23 +4,23 @@ import { Invoice } from './Invoice';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column()
-  password: string;
+  password!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => Invoice, (invoice) => invoice.user)
-  invoices: Invoice[];
+  invoices!: Invoice[];
 }

@@ -4,29 +4,29 @@ import { Invoice } from './Invoice';
 @Entity('customers')
 export class Customer {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column()
-  email: string;
+  email!: string;
 
   @Column()
-  phone: string;
+  phone!: string;
 
   @Column()
-  address: string;
+  address!: string;
 
   @Column({ nullable: true })
-  gstNumber: string;
+  gstNumber!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => Invoice, (invoice) => invoice.customer)
-  invoices: Invoice[];
+  invoices!: Invoice[];
 }
