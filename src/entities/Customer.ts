@@ -1,19 +1,25 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Invoice } from './Invoice';
 
-@Entity('users')
-export class User {
+@Entity('customers')
+export class Customer {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column()
+  name: string;
+
+  @Column()
   email: string;
 
   @Column()
-  password: string;
+  phone: string;
 
   @Column()
-  name: string;
+  address: string;
+
+  @Column({ nullable: true })
+  gstNumber: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -21,6 +27,6 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => Invoice, (invoice) => invoice.user)
+  @OneToMany(() => Invoice, (invoice) => invoice.customer)
   invoices: Invoice[];
 }
