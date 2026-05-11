@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
 import { User } from './User';
 import { Customer } from './Customer';
-import { InvoiceItem } from './InvoiceItem';
+import { InvoiceItem } from './InvoiceItems';
 
 export enum InvoiceStatus {
   DRAFT = 'draft',
