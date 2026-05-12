@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { InvoiceService } from '../services/InvoiceService';
 import { InvoiceStatus } from '../entities/Invoice';
 import { validateCreateInvoice } from '../validators/invoiceValidator';
-
+import { AuthRequest } from '../middleware/auth';
 export class InvoiceController {
   private invoiceService: InvoiceService;
 
@@ -10,7 +10,7 @@ export class InvoiceController {
     this.invoiceService = invoiceService || new InvoiceService();
   }
 
-  createInvoice = async (req: Request, res: Response, next: NextFunction) => {
+  createInvoice = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const validation = validateCreateInvoice(req.body);
       if (!validation.isValid) {
