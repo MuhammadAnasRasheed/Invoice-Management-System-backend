@@ -3,6 +3,7 @@ import { CustomerRepository } from '../repositories/CustomerRepository';
 import { Invoice, InvoiceStatus } from '../entities/Invoice';
 import { InvoiceItem } from '../entities/InvoiceItems';
 import { generateInvoiceNumber } from '../utils/invoiceHelper';
+import { User } from '../entities/User';
 
 export class InvoiceService {
   private invoiceRepository: InvoiceRepository;
@@ -19,7 +20,7 @@ export class InvoiceService {
 
   async createInvoice(data: {
     customerId: string;
-    userId: string;
+    userId: string; // Add userId from auth middleware
     items: Array<{ description: string; quantity: number; unitPrice: number }>;
     issueDate: Date;
     dueDate: Date;
@@ -52,6 +53,7 @@ export class InvoiceService {
     const invoice = new Invoice();
     invoice.invoiceNumber = invoiceNumber;
     invoice.customer = customer;
+    invoice.user = {id:data.userId} as User;
     invoice.issueDate = data.issueDate;
     invoice.dueDate = data.dueDate;
     invoice.subtotal = subtotal;
