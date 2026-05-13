@@ -13,9 +13,6 @@ export class Customer {
   email!: string;
 
   @Column()
-  password!: string;
-
-  @Column()
   phone!: string;
 
   @Column()
