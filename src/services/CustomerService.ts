@@ -1,85 +1,68 @@
 import { CustomerRepository } from '../repositories/CustomerRepository';
-import { TokenService } from './TokenService';
+import { UserRepository } from '../repositories/UserRepository';
 import { Customer } from '../entities/Customer';
-import bcrypt from 'bcrypt';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 export class CustomerService {
   private customerRepository: CustomerRepository;
-  private tokenService: TokenService;
+  private userRepository: UserRepository;
 
   constructor() {
     this.customerRepository = CustomerRepository.getInstance();
-    this.tokenService = TokenService.getInstance(); // Dependency Injection
+    this.userRepository = UserRepository.getInstance();
   }
 
-  async register(data: {
+  async createCustomer(data: {
     name: string;
     email: string;
-    password: string;
     phone: string;
     address: string;
     gstNumber?: string;
-  }): Promise<{ customer: Partial<Customer>; token: string }> {
-    // Check if customer already exists
+  }, userId: string): Promise<Customer> {
+    // Check if customer with this email already exists
     const existingCustomer = await this.customerRepository.findByEmail(data.email);
     if (existingCustomer) {
       throw new Error('Customer with this email already exists');
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(data.password, Number (process.env.SALT));
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
 
-    // Create customer
+    // Create customer linked to user
     const customer = await this.customerRepository.create({
       ...data,
-      password: hashedPassword,
-    });
+      user:user} as any
+    );
 
-    // Generate JWT token using TokenService
-    const token = this.tokenService.generateToken({
-      id: customer.id,
-      email: customer.email,
-      name: customer.name,
-    });
-
-    // Return customer without password
-    const { password, ...customerWithoutPassword } = customer;
-    return { customer: customerWithoutPassword, token };
+    return customer;
   }
 
-  async login(email: string, password: string): Promise<{ customer: Partial<Customer>; token: string }> {
-    // Find customer with password field
-    const customer = await this.customerRepository.findByEmailWithPassword(email);
-    if (!customer) {
-      throw new Error('Invalid email or password');
-    }
-
-    // Compare password
-    const isPasswordValid = await bcrypt.compare(password, customer.password);
-    if (!isPasswordValid) {
-      throw new Error('Invalid email or password');
-    }
-
-    // Generate JWT token using TokenService
-    const token = this.tokenService.generateToken({
-      id: customer.id,
-      email: customer.email,
-      name: customer.name,
-    });
-
-    // Return customer without password
-    const { password: _, ...customerWithoutPassword } = customer;
-    return { customer: customerWithoutPassword, token };
+  async getAllCustomers(userId: string): Promise<Customer[]> {
+    return await this.customerRepository.findByUser(userId);
   }
 
-  async getCustomerById(id: string): Promise<Partial<Customer> | null> {
-    const customer = await this.customerRepository.findById(id);
+  async getCustomerById(id: string, userId: string): Promise<Customer | null> {
+    const customer = await this.customerRepository.findByIdWithUser(id);
+    if (!customer || customer.user.id !== userId) {
+      return null;
+    }
+    return customer;
+  }
+
+  async updateCustomer(id: string, data: Partial<Customer>, userId: string): Promise<Customer | null> {
+    const customer = await this.getCustomerById(id, userId);
     if (!customer) return null;
-    
-    const { password, ...customerWithoutPassword } = customer;
-    return customerWithoutPassword;
+
+    // Remove user field if present to prevent ownership change
+    const { user, ...cleanData } = data as any;
+    return await this.customerRepository.update(id, cleanData);
+  }
+
+  async deleteCustomer(id: string, userId: string): Promise<boolean> {
+    const customer = await this.getCustomerById(id, userId);
+    if (!customer) return false;
+
+    return await this.customerRepository.delete(id);
   }
 }
