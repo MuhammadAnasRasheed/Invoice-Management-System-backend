@@ -1,6 +1,5 @@
 import { BaseRepository } from './BaseRepository';
 import { Customer } from '../entities/Customer';
-import { AppDataSource } from '../config/database';
 
 export class CustomerRepository extends BaseRepository<Customer> {
   private static instance: CustomerRepository;
@@ -21,11 +20,17 @@ export class CustomerRepository extends BaseRepository<Customer> {
     return customers[0] || null;
   }
 
-  async findByEmailWithPassword(email: string): Promise<Customer | null> {
-    return await this.repository
-      .createQueryBuilder('customer')
-      .where('customer.email = :email', { email })
-      .addSelect('customer.password')
-      .getOne();
+  async findByUser(userId: string): Promise<Customer[]> {
+    return await this.repository.find({
+      where: { user: { id: userId } } as any,
+      order: { createdAt: 'DESC' }
+    });
+  }
+
+  async findByIdWithUser(id: string): Promise<Customer | null> {
+    return await this.repository.findOne({
+      where: { id } as any,
+      relations: ['user']
+    });
   }
 }
