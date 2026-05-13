@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { CustomerService } from '../services/CustomerService';
-import { validateRegister, validateLogin } from '../validators/customerValidators'
+import { validateCreateCustomer, validateUpdateCustomer } from '../validators/customerValidators';
 import { AuthRequest } from '../middleware/auth';
 
 export class CustomerController {
@@ -10,78 +10,129 @@ export class CustomerController {
     this.customerService = new CustomerService();
   }
 
-  register = async (req: Request, res: Response, next: NextFunction) => {
+  // Create a new customer (authenticated user adds a client)
+  createCustomer = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-      // Validate input
-      const validation = validateRegister(req.body);
-      if (!validation.isValid) {
-        return res.status(400).json({ success: false, errors: validation.errors });
+      if (!req.user) {
+        res.status(401).json({ success: false, message: 'Not authenticated' });
+        return;
       }
 
-      // Register customer
-      const { customer, token } = await this.customerService.register(validation.data!);
+      const validation = validateCreateCustomer(req.body);
+      if (!validation.isValid) {
+        res.status(400).json({ success: false, errors: validation.errors });
+        return;
+      }
+
+      const customer = await this.customerService.createCustomer(
+        validation.data!,
+        req.user.id
+      );
       
       res.status(201).json({
         success: true,
-        message: 'Registration successful',
-        data: { customer, token }
+        message: 'Customer created successfully',
+        data: customer
       });
     } catch (error) {
       next(error);
     }
   };
 
-  login = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // Validate input
-      const validation = validateLogin(req.body);
-      if (!validation.isValid) {
-        return res.status(400).json({ success: false, errors: validation.errors });
-      }
-
-      // Login customer
-      const { customer, token } = await this.customerService.login(
-        validation.data!.email,
-        validation.data!.password
-      );
-      
-      res.json({
-        success: true,
-        message: 'Login successful',
-        data: { customer, token }
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  logout = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    try {
-      // Since JWT is stateless, logout is handled on client side by removing token
-      // But we can add token to blacklist if needed (requires Redis)
-      res.json({
-        success: true,
-        message: 'Logout successful. Please remove token from client.'
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  getMe = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  // Get all customers for logged-in user
+  getAllCustomers = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       if (!req.user) {
-        return res.status(401).json({ success: false, message: 'Not authenticated' });
+        res.status(401).json({ success: false, message: 'Not authenticated' });
+        return;
       }
+
+      const customers = await this.customerService.getAllCustomers(req.user.id);
       
-      const customer = await this.customerService.getCustomerById(req.user.id);
+      res.status(200).json({
+        success: true,
+        data: customers
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Get single customer by ID
+  getCustomerById = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ success: false, message: 'Not authenticated' });
+        return;
+      }
+
+      const customer = await this.customerService.getCustomerById(req.params.id as string, req.user.id);
       if (!customer) {
-        return res.status(404).json({ success: false, message: 'Customer not found' });
+        res.status(404).json({ success: false, message: 'Customer not found' });
+        return;
       }
       
-      res.json({
+      res.status(200).json({
         success: true,
         data: customer
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Update customer
+  updateCustomer = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ success: false, message: 'Not authenticated' });
+        return;
+      }
+
+      const validation = validateUpdateCustomer(req.body);
+      if (!validation.isValid) {
+        res.status(400).json({ success: false, errors: validation.errors });
+        return;
+      }
+
+      const customer = await this.customerService.updateCustomer(
+        req.params.id as string,
+        validation.data!,
+        req.user.id
+      );
+      
+      if (!customer) {
+        res.status(404).json({ success: false, message: 'Customer not found' });
+        return;
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: 'Customer updated successfully',
+        data: customer
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Delete customer
+  deleteCustomer = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ success: false, message: 'Not authenticated' });
+        return;
+      }
+
+      const deleted = await this.customerService.deleteCustomer(req.params.id as string, req.user.id);
+      if (!deleted) {
+        res.status(404).json({ success: false, message: 'Customer not found' });
+        return;
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: 'Customer deleted successfully'
       });
     } catch (error) {
       next(error);
