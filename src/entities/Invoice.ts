@@ -16,35 +16,31 @@ export class Invoice {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 50, unique: true })
   invoiceNumber!: string;
 
-  @Column('date')
+  @Column({ type: 'date' })
   issueDate!: Date;
 
-  @Column('date')
+  @Column({ type: 'date' })
   dueDate!: Date;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   subtotal!: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   tax!: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   discount!: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   total!: number;
 
-  @Column({
-    type: 'enum',
-    enum: InvoiceStatus,
-    default: InvoiceStatus.PENDING
-  })
+  @Column({ type: 'enum', enum: InvoiceStatus, default: InvoiceStatus.PENDING })
   status!: InvoiceStatus;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   notes!: string;
 
   @ManyToOne(() => User, (user) => user.invoices)
@@ -56,9 +52,9 @@ export class Invoice {
   @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true })
   items!: InvoiceItem[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   createdAt!: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp' })
   updatedAt!: Date;
 }

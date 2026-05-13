@@ -6,16 +6,16 @@ export class InvoiceItem {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   description!: string;
 
-  @Column('int')
+  @Column({ type: 'int' })
   quantity!: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   unitPrice!: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   total!: number;
 
   @ManyToOne(() => Invoice, (invoice) => invoice.items)

@@ -7,28 +7,28 @@ export class Customer {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 100 })
   name!: string;
 
-  @Column({unique:true})
+  @Column({ type: 'varchar', unique: true, length: 100 })
   email!: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 15 })
   phone!: string;
 
-  @Column()
+  @Column({ type: 'text' })
   address!: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true, length: 50 })
   gstNumber!: string;
 
   @ManyToOne(() => User, (user) => user.customers)
   user!: User;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   createdAt!: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp' })
   updatedAt!: Date;
 
   @OneToMany(() => Invoice, (invoice) => invoice.customer)
