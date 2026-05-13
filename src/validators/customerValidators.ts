@@ -1,28 +1,27 @@
 import { z } from 'zod';
 
-// Registration validation schema
-export const registerSchema = z.object({
+// Create customer validation schema (NO password)
+export const createCustomerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   email: z.string().email('Invalid email format'),
-  password: z.string().min(6, 'Password must be at least 6 characters').regex(
-    /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/,
-    'Password must contain at least 1 uppercase letter and 1 special character'
-  ),
-  phone: z.string().min(11, 'Phone number must be at least 11 digits').max(11),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
   address: z.string().min(5, 'Address must be at least 5 characters'),
   gstNumber: z.string().optional(),
 });
 
-// Login validation schema
-export const loginSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(6, 'Password is required'),
+// Update customer validation schema
+export const updateCustomerSchema = z.object({
+  name: z.string().min(2).max(100).optional(),
+  email: z.string().email().optional(),
+  phone: z.string().min(10).optional(),
+  address: z.string().min(5).optional(),
+  gstNumber: z.string().optional(),
 });
 
-// Validate registration
-export const validateRegister = (data: any) => {
+// Validate create customer
+export const validateCreateCustomer = (data: any) => {
   try {
-    const validated = registerSchema.parse(data);
+    const validated = createCustomerSchema.parse(data);
     return { isValid: true, data: validated, errors: null };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -32,10 +31,10 @@ export const validateRegister = (data: any) => {
   }
 };
 
-// Validate login
-export const validateLogin = (data: any) => {
+// Validate update customer
+export const validateUpdateCustomer = (data: any) => {
   try {
-    const validated = loginSchema.parse(data);
+    const validated = updateCustomerSchema.parse(data);
     return { isValid: true, data: validated, errors: null };
   } catch (error) {
     if (error instanceof z.ZodError) {
