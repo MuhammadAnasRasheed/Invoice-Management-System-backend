@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Invoice } from './Invoice';
+import { Customer } from './Customer';
 
 @Entity('users')
 export class User {
@@ -23,4 +24,7 @@ export class User {
 
   @OneToMany(() => Invoice, (invoice) => invoice.user)
   invoices!: Invoice[];
+
+  @OneToMany(() => Customer, (customer) => customer.user)
+  customers!: Customer[];
 }
