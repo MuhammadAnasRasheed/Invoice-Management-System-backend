@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne } from 'typeorm';
 import { Invoice } from './Invoice';
+import { User } from './User';
 
 @Entity('customers')
 export class Customer {
@@ -9,7 +10,7 @@ export class Customer {
   @Column()
   name!: string;
 
-  @Column()
+  @Column({unique:true})
   email!: string;
 
   @Column()
@@ -20,6 +21,9 @@ export class Customer {
 
   @Column({ nullable: true })
   gstNumber!: string;
+
+  @ManyToOne(() => User, (user) => user.customers)
+  user!: User;
 
   @CreateDateColumn()
   createdAt!: Date;
