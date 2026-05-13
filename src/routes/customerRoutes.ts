@@ -5,12 +5,11 @@ import { authMiddleware } from '../middleware/auth';
 const router = Router();
 const customerController = new CustomerController();
 
-// Public routes
-router.post('/register', customerController.register);
-router.post('/login', customerController.login);
-
-// Protected routes (require authentication)
-router.post('/logout', authMiddleware, customerController.logout);
-router.get('/check', authMiddleware, customerController.getMe);
+// All customer routes require authentication (user must be logged in)
+router.post('/', authMiddleware, customerController.createCustomer);
+router.get('/', authMiddleware, customerController.getAllCustomers);
+router.get('/:id', authMiddleware, customerController.getCustomerById);
+router.put('/:id', authMiddleware, customerController.updateCustomer);
+router.delete('/:id', authMiddleware, customerController.deleteCustomer);
 
 export default router;
