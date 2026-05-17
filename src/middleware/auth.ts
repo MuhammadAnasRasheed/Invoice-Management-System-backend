@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { TokenService } from '../services/TokenService';
 import { CustomerRepository } from '../repositories/CustomerRepository';
+import { UserRepository } from '../repositories/UserRepository';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -16,38 +17,32 @@ export const authMiddleware = async (
   next: NextFunction
 ) => {
   try {
-    // Get token from header
     const token = req.headers.authorization?.split(' ')[1];
     
     if (!token) {
       return res.status(401).json({ success: false, message: 'Access denied. No token provided.' });
     }
 
-    // Verify token using TokenService
     const tokenService = TokenService.getInstance();
     const decoded = tokenService.verifyToken(token);
     
     if (!decoded) {
+      console.log('Token verification failed');
       return res.status(401).json({ success: false, message: 'Invalid or expired token.' });
     }
 
-    // Check if customer still exists
-    const customerRepository = CustomerRepository.getInstance();
-    const customer = await customerRepository.findById(decoded.id);
+    const userRepository = UserRepository.getInstance();
+    const user = await userRepository.findById(decoded.id);
     
-    if (!customer) {
-      return res.status(401).json({ success: false, message: 'Invalid token. Customer not found.' });
+    if (!user) {
+      console.log('User not found for id:', decoded.id);
+      return res.status(401).json({ success: false, message: 'Invalid token. User not found.' });
     }
 
-    // Attach user to request
-    req.user = {
-      id: decoded.id,
-      email: decoded.email,
-      name: decoded.name,
-    };
-
+    req.user = decoded;
     next();
   } catch (error) {
+    console.error('Auth error:', error);
     return res.status(500).json({ success: false, message: 'Authentication error' });
   }
 };
