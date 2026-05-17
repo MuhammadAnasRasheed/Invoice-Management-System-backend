@@ -19,9 +19,6 @@ export class Customer {
   @Column({ type: 'text' })
   address!: string;
 
-  @Column({ type: 'varchar', nullable: true, length: 50 })
-  gstNumber!: string;
-
   @ManyToOne(() => User, (user) => user.customers)
   user!: User;
 
