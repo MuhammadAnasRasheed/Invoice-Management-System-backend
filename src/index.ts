@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://invoice-manager-henna-nine.vercel.app/']  // Production frontend URL
+    ? ['https://invoice-manager-henna-nine.vercel.app']  // Production frontend URL
     : ['http://localhost:5173'], // Development URLs
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
