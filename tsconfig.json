@@ -10,7 +10,7 @@
     "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "strictPropertyInitialization": false   // ← Add this
+    "strictPropertyInitialization": false
 
   },
   "include": ["src/**/*"],
