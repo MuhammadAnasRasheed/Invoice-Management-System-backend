@@ -49,7 +49,7 @@ export class Invoice {
   @ManyToOne(() => Customer, (customer) => customer.invoices)
   customer!: Customer;
 
-  @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true })
+  @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true})
   items!: InvoiceItem[];
 
   @CreateDateColumn({ type: 'timestamp' })
