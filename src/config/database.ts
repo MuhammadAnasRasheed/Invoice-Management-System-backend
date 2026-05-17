@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 import { Invoice } from '../entities/Invoice';
-import { InvoiceItem } from '../entities/InvoiceItem';
+import { InvoiceItem } from '../entities/InvoiceItems';
 import { Customer } from '../entities/Customer';
 import { User } from '../entities/User';
 import dotenv from 'dotenv';

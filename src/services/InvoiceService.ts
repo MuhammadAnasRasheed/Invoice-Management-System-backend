@@ -4,7 +4,7 @@ import { Invoice, InvoiceStatus } from '../entities/Invoice';
 import { InvoiceItem } from '../entities/InvoiceItems';
 import { generateInvoiceNumber } from '../utils/invoiceHelper';
 import { User } from '../entities/User';
-
+import { AppDataSource } from '../config/database';
 export class InvoiceService {
   private invoiceRepository: InvoiceRepository;
   private customerRepository: CustomerRepository;
@@ -53,7 +53,7 @@ export class InvoiceService {
     const invoice = new Invoice();
     invoice.invoiceNumber = invoiceNumber;
     invoice.customer = customer;
-    invoice.user = {id:data.userId} as User;
+    invoice.user = { id: data.userId } as User;
     invoice.issueDate = data.issueDate;
     invoice.dueDate = data.dueDate;
     invoice.subtotal = subtotal;
@@ -67,12 +67,16 @@ export class InvoiceService {
     return await this.invoiceRepository.create(invoice);
   }
 
-  async getAllInvoices(): Promise<Invoice[]> {
-    return await this.invoiceRepository.findAllWithDetails();
+  async getAllInvoices(id: string, search: string): Promise<Invoice[]> {
+    return await this.invoiceRepository.findAllWithDetails(id, search);
   }
 
   async getInvoiceById(id: string): Promise<Invoice | null> {
-    return await this.invoiceRepository.findWithDetails(id);
+    return await this.invoiceRepository.getInvoiceById(id);
+  }
+
+  async getInvoicesByCustomer(customerId: string, userId: string): Promise<Invoice[]> {
+    return await this.invoiceRepository.findByCustomer(customerId, userId);
   }
 
   async updateInvoiceStatus(id: string, status: InvoiceStatus): Promise<Invoice> {
@@ -84,10 +88,17 @@ export class InvoiceService {
   }
 
   async deleteInvoice(id: string): Promise<boolean> {
-    return await this.invoiceRepository.delete(id);
-  }
+    try {
+      // First, manually delete all invoice items
+      await AppDataSource.getRepository(InvoiceItem).delete({ invoice: { id } });
 
-  async getInvoicesByCustomer(customerId: string): Promise<Invoice[]> {
-    return await this.invoiceRepository.findByCustomer(customerId);
+      // Then delete the invoice
+      const result = await this.invoiceRepository.delete(id);
+
+      return result;
+    } catch (error) {
+      console.error('Delete error:', error);
+      return false;
+    }
   }
 }

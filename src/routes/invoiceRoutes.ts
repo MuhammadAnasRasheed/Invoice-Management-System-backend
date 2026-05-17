@@ -7,6 +7,7 @@ const invoiceController = new InvoiceController();
 
 router.post('/',authMiddleware, invoiceController.createInvoice);
 router.get('/', authMiddleware,invoiceController.getAllInvoices);
+router.get('/customer/:customerId', authMiddleware, invoiceController.getInvoicesByCustomer);
 router.get('/:id', authMiddleware, invoiceController.getInvoiceById);
 router.patch('/:id/status', authMiddleware, invoiceController.updateInvoiceStatus);
 router.delete('/:id', authMiddleware, invoiceController.deleteInvoice);

@@ -1,7 +1,9 @@
 import { CustomerRepository } from '../repositories/CustomerRepository';
 import { UserRepository } from '../repositories/UserRepository';
 import { Customer } from '../entities/Customer';
-
+import { InvoiceItem } from '../entities/InvoiceItems';
+import { Invoice } from '../entities/Invoice';
+import { AppDataSource } from '../config/database';
 export class CustomerService {
   private customerRepository: CustomerRepository;
   private userRepository: UserRepository;
@@ -16,7 +18,6 @@ export class CustomerService {
     email: string;
     phone: string;
     address: string;
-    gstNumber?: string;
   }, userId: string): Promise<Customer> {
     // Check if customer with this email already exists
     const existingCustomer = await this.customerRepository.findByEmail(data.email);
@@ -32,14 +33,15 @@ export class CustomerService {
     // Create customer linked to user
     const customer = await this.customerRepository.create({
       ...data,
-      user:user} as any
+      user: user
+    } as any
     );
 
     return customer;
   }
 
-  async getAllCustomers(userId: string): Promise<Customer[]> {
-    return await this.customerRepository.findByUser(userId);
+  async getAllCustomers(userId: string,search:string): Promise<Customer[]> {
+    return await this.customerRepository.findByUser(userId,search);
   }
 
   async getCustomerById(id: string, userId: string): Promise<Customer | null> {
@@ -60,9 +62,25 @@ export class CustomerService {
   }
 
   async deleteCustomer(id: string, userId: string): Promise<boolean> {
-    const customer = await this.getCustomerById(id, userId);
-    if (!customer) return false;
+    try {
+      // First, get all invoices of this customer
+      const invoices = await AppDataSource.getRepository(Invoice).find({ where: { customer: { id } } });
 
-    return await this.customerRepository.delete(id);
+      // Delete invoice items for each invoice
+      for (const invoice of invoices) {
+        await AppDataSource.getRepository(InvoiceItem).delete({ invoice: { id: invoice.id } });
+      }
+
+      // Then delete invoices
+      await AppDataSource.getRepository(Invoice).delete({ customer: { id } });
+
+      // Finally delete the customer
+      const result = await this.customerRepository.delete(id);
+
+      return result;
+    } catch (error) {
+      console.error('Delete customer error:', error);
+      return false;
+    }
   }
 }

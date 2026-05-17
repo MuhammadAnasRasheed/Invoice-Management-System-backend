@@ -31,14 +31,16 @@ export class TokenService {
   }
 
   verifyToken(token: string): TokenPayload | null {
-    try {
-      const decoded = jwt.verify(token, this.secret) as TokenPayload;
-      return decoded;
-    } catch (error) {
-      return null;
-    }
+  try {
+    console.log('Verifying token with secret:', this.secret);
+    const decoded = jwt.verify(token, this.secret) as TokenPayload;
+    console.log('Decoded successfully:', decoded);
+    return decoded;
+  } catch (error) {
+    console.error('Token verification error:', error instanceof Error ? error.message : error);
+    return null;
   }
-
+}
   decodeToken(token: string): TokenPayload | null {
     try {
       const decoded = jwt.decode(token) as TokenPayload;

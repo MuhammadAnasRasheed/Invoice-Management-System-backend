@@ -4,8 +4,11 @@ import { z } from 'zod';
 export const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   email: z.string().email('Invalid email format'),
-  password: z.string().min(6).regex(/^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/).max(70), 
-  //   'Password must contain at least 1 uppercase letter and 1 special character'),
+  password: z.string()
+    .min(6, 'Password must be at least 6 characters')
+    .regex(/[A-Z]/, 'Password must contain at least 1 uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least 1 number')
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least 1 special character'),
 });
 
 // Login validation schema

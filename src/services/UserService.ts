@@ -58,7 +58,7 @@ export class UserService {
     // Compare password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new Error('Invalid email or password');
+      throw new Error('Invalid password');
     }
 
     // Generate JWT token
