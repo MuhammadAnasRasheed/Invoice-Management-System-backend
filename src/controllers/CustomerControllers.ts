@@ -47,7 +47,9 @@ export class CustomerController {
         return;
       }
 
-      const customers = await this.customerService.getAllCustomers(req.user.id);
+      const search = req.query.search as string;
+
+      const customers = await this.customerService.getAllCustomers(req.user.id,search);
       
       res.status(200).json({
         success: true,
@@ -76,7 +78,7 @@ export class CustomerController {
         success: true,
         data: customer
       });
-    } catch (error) {
+    } catch (error) { 
       next(error);
     }
   };
