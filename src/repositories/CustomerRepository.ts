@@ -1,5 +1,6 @@
 import { BaseRepository } from './BaseRepository';
 import { Customer } from '../entities/Customer';
+import { ILike,Like } from 'typeorm';
 
 export class CustomerRepository extends BaseRepository<Customer> {
   private static instance: CustomerRepository;
@@ -20,10 +21,30 @@ export class CustomerRepository extends BaseRepository<Customer> {
     return customers[0] || null;
   }
 
-  async findByUser(userId: string): Promise<Customer[]> {
+  async findByUser(userId: string, search: string): Promise<Customer[]> {
+  if (search) {
     return await this.repository.find({
-      where: { user: { id: userId } } as any,
-      order: { createdAt: 'DESC' }
+      where: {
+        user: { id: userId },
+        name: ILike(`%${search}%`)
+      }
+    });
+  }
+
+  return await this.repository.find({
+    where: {
+      user: { id: userId }
+    }
+  });
+}
+
+  async searchByName(userId: string, searchTerm: string): Promise<Customer[]> {
+    return await this.repository.find({
+      where: {
+        user: { id: userId },
+        name: Like(`%${searchTerm}%`)
+      } as any,
+      order: { name: 'ASC' }
     });
   }
 
