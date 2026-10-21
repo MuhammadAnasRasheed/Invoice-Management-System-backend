@@ -1,11 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { TokenService } from '../services/TokenService';
-import { CustomerRepository } from '../repositories/CustomerRepository';
 import { UserRepository } from '../repositories/UserRepository';
 
 export interface AuthRequest extends Request {
   user?: {
-    id: string;
+    id: number | string;
     email: string;
     name: string;
   };

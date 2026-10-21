@@ -1,6 +1,6 @@
 import { BaseRepository } from './BaseRepository';
 import { Customer } from '../entities/Customer';
-import { ILike,Like } from 'typeorm';
+import { ILike, Like } from 'typeorm';
 
 export class CustomerRepository extends BaseRepository<Customer> {
   private static instance: CustomerRepository;
@@ -21,37 +21,44 @@ export class CustomerRepository extends BaseRepository<Customer> {
     return customers[0] || null;
   }
 
-  async findByUser(userId: string, search: string): Promise<Customer[]> {
-  if (search) {
+  async findByUser(userId: number | string, search?: string): Promise<Customer[]> {
+    const numericUserId = typeof userId === 'string' ? Number(userId) : userId;
+
+    if (search && search.trim() !== '') {
+      return await this.repository.find({
+        where: {
+          user: { id: numericUserId },
+          name: ILike(`%${search}%`)
+        },
+        order: { createdAt: 'DESC' }
+      });
+    }
+
     return await this.repository.find({
       where: {
-        user: { id: userId },
-        name: ILike(`%${search}%`)
-      }
+        user: { id: numericUserId }
+      },
+      order: { createdAt: 'DESC' }
     });
   }
 
-  return await this.repository.find({
-    where: {
-      user: { id: userId }
-    }
-  });
-}
-
-  async searchByName(userId: string, searchTerm: string): Promise<Customer[]> {
+  async searchByName(userId: number | string, searchTerm: string): Promise<Customer[]> {
+    const numericUserId = typeof userId === 'string' ? Number(userId) : userId;
     return await this.repository.find({
       where: {
-        user: { id: userId },
+        user: { id: numericUserId },
         name: Like(`%${searchTerm}%`)
       } as any,
       order: { name: 'ASC' }
     });
   }
 
-  async findByIdWithUser(id: string): Promise<Customer | null> {
+  async findByIdWithUser(id: number | string): Promise<Customer | null> {
+    const numericId = typeof id === 'string' ? Number(id) : id;
     return await this.repository.findOne({
-      where: { id } as any,
+      where: { id: numericId } as any,
       relations: ['user']
     });
   }
 }
+

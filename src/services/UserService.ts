@@ -73,7 +73,7 @@ export class UserService {
     return { user: userWithoutPassword, token };
   }
 
-  async getUserById(id: string): Promise<Partial<User> | null> {
+  async getUserById(id: number | string): Promise<Partial<User> | null> {
     const user = await this.userRepository.findById(id);
     if (!user) return null;
     
@@ -81,16 +81,18 @@ export class UserService {
     return userWithoutPassword;
   }
 
-  async updateProfile(id: string, data: { name?: string; email?: string }): Promise<Partial<User> | null> {
+  async updateProfile(id: number | string, data: { name?: string; email?: string }): Promise<Partial<User> | null> {
+    const numericId = typeof id === 'string' ? Number(id) : id;
+
     // If email is being changed, check if it's already taken
     if (data.email) {
       const existingUser = await this.userRepository.findByEmail(data.email);
-      if (existingUser && existingUser.id !== id) {
+      if (existingUser && existingUser.id !== numericId) {
         throw new Error('Email already taken');
       }
     }
 
-    const updatedUser = await this.userRepository.update(id, data);
+    const updatedUser = await this.userRepository.update(numericId, data);
     const { password, ...userWithoutPassword } = updatedUser;
     return userWithoutPassword;
   }

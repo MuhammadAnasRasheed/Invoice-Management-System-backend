@@ -7,7 +7,10 @@ const invoiceItemSchema = z.object({
 });
 
 const createInvoiceSchema = z.object({
-  customerId: z.string().uuid('Invalid customer ID'),
+  customerId: z.union([
+    z.number().int().positive('Invalid customer ID'),
+    z.string().regex(/^\d+$/, 'Invalid customer ID').transform(Number)
+  ]),
   items: z.array(invoiceItemSchema).min(1, 'At least one item is required'),
   issueDate: z.string().transform(str => new Date(str)),
   dueDate: z.string().transform(str => new Date(str)),

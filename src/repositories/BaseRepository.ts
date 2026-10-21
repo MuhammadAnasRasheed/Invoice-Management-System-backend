@@ -1,4 +1,4 @@
-import { Repository, EntityTarget, DataSource, ObjectLiteral,DeepPartial } from 'typeorm';
+import { Repository, EntityTarget, DataSource, ObjectLiteral, DeepPartial } from 'typeorm';
 import { IRepository } from './IRepository';
 import { AppDataSource } from '../config/database';
 
@@ -10,8 +10,9 @@ export abstract class BaseRepository<T extends ObjectLiteral> implements IReposi
     this.repository = source.getRepository(entity);
   }
 
-  async findById(id: string): Promise<T | null> {
-    return await this.repository.findOne({ where: { id } as any });
+  async findById(id: number | string): Promise<T | null> {
+    const numericId = typeof id === 'string' ? Number(id) : id;
+    return await this.repository.findOne({ where: { id: numericId } as any });
   }
 
   async findAll(): Promise<T[]> {
@@ -23,15 +24,17 @@ export abstract class BaseRepository<T extends ObjectLiteral> implements IReposi
     return await this.repository.save(entity);
   }
 
-  async update(id: string, data: Partial<T>): Promise<T> {
-    await this.repository.update(id, data);
+  async update(id: number | string, data: Partial<T>): Promise<T> {
+    const numericId = typeof id === 'string' ? Number(id) : id;
+    await this.repository.update(numericId, data as any);
     const updated = await this.findById(id);
     if (!updated) throw new Error('Entity not found');
     return updated;
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.repository.delete(id);
+  async delete(id: number | string): Promise<boolean> {
+    const numericId = typeof id === 'string' ? Number(id) : id;
+    const result = await this.repository.delete(numericId);
     return result.affected !== null && result.affected !== undefined && result.affected > 0;
   }
 
@@ -39,3 +42,4 @@ export abstract class BaseRepository<T extends ObjectLiteral> implements IReposi
     return await this.repository.find({ where: criteria as any });
   }
 }
+

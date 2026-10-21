@@ -4,8 +4,8 @@ import { Customer } from './Customer';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'varchar', unique: true, length: 100 })
   email!: string;

@@ -3,6 +3,7 @@ import { InvoiceService } from '../services/InvoiceService';
 import { InvoiceStatus } from '../entities/Invoice';
 import { validateCreateInvoice } from '../validators/invoiceValidator';
 import { AuthRequest } from '../middleware/auth';
+
 export class InvoiceController {
   private invoiceService: InvoiceService;
 
@@ -12,16 +13,18 @@ export class InvoiceController {
 
   createInvoice = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      console.log("BODY:", req.body);
-      console.log("customerId:", req.body.customerId);
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Not authenticated' });
+      }
+
       const validation = validateCreateInvoice(req.body);
       if (!validation.isValid) {
         return res.status(400).json({ errors: validation.errors });
       }
 
       const invoice = await this.invoiceService.createInvoice({
-        ...req.body,
-        userId: req.user?.id // Assuming auth middleware sets req.user
+        ...validation.data!,
+        userId: req.user.id
       });
 
       res.status(201).json({ success: true, data: invoice });
@@ -39,11 +42,11 @@ export class InvoiceController {
 
       const search = req.query.search as string;
 
-      const customers = await this.invoiceService.getAllInvoices(req.user.id, search);
+      const invoices = await this.invoiceService.getAllInvoices(req.user.id, search);
 
       res.status(200).json({
         success: true,
-        data: customers
+        data: invoices
       });
     } catch (error) {
       next(error);
@@ -56,9 +59,8 @@ export class InvoiceController {
         return res.status(401).json({ success: false, message: 'Not authenticated' });
       }
 
-      const { customerId } = req.params;
-      const id = customerId as string;
-      const invoices = await this.invoiceService.getInvoicesByCustomer(id, req.user.id);
+      const customerId = req.params.customerId as string;
+      const invoices = await this.invoiceService.getInvoicesByCustomer(customerId, req.user.id);
 
       res.json({ success: true, data: invoices });
     } catch (error) {
@@ -68,7 +70,8 @@ export class InvoiceController {
 
   getInvoiceById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const invoice = await this.invoiceService.getInvoiceById(req.params.id as string);
+      const id = req.params.id as string;
+      const invoice = await this.invoiceService.getInvoiceById(id);
       if (!invoice) {
         return res.status(404).json({ success: false, message: 'Invoice not found' });
       }
@@ -85,7 +88,8 @@ export class InvoiceController {
         return res.status(400).json({ success: false, message: 'Invalid status' });
       }
 
-      const invoice = await this.invoiceService.updateInvoiceStatus(req.params.id as string, status);
+      const id = req.params.id as string;
+      const invoice = await this.invoiceService.updateInvoiceStatus(id, status);
       res.json({ success: true, data: invoice });
     } catch (error) {
       next(error);
@@ -94,7 +98,8 @@ export class InvoiceController {
 
   deleteInvoice = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const deleted = await this.invoiceService.deleteInvoice(req.params.id as string);
+      const id = req.params.id as string;
+      const deleted = await this.invoiceService.deleteInvoice(id);
       if (!deleted) {
         return res.status(404).json({ success: false, message: 'Invoice not found' });
       }

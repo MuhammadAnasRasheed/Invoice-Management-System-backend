@@ -5,6 +5,7 @@ import { InvoiceItem } from '../entities/InvoiceItems';
 import { generateInvoiceNumber } from '../utils/invoiceHelper';
 import { User } from '../entities/User';
 import { AppDataSource } from '../config/database';
+
 export class InvoiceService {
   private invoiceRepository: InvoiceRepository;
   private customerRepository: CustomerRepository;
@@ -19,8 +20,8 @@ export class InvoiceService {
   }
 
   async createInvoice(data: {
-    customerId: string;
-    userId: string; // Add userId from auth middleware
+    customerId: number | string;
+    userId: number | string;
     items: Array<{ description: string; quantity: number; unitPrice: number }>;
     issueDate: Date;
     dueDate: Date;
@@ -45,55 +46,60 @@ export class InvoiceService {
       return invoiceItem;
     });
 
-    const customer = await this.customerRepository.findById(data.customerId);
+    const numericCustomerId = typeof data.customerId === 'string' ? Number(data.customerId) : data.customerId;
+    const customer = await this.customerRepository.findById(numericCustomerId);
     if (!customer) {
       throw new Error('Customer not found');
     }
 
+    const numericUserId = typeof data.userId === 'string' ? Number(data.userId) : data.userId;
+
     const invoice = new Invoice();
     invoice.invoiceNumber = invoiceNumber;
     invoice.customer = customer;
-    invoice.user = { id: data.userId } as User;
+    invoice.user = { id: numericUserId } as User;
     invoice.issueDate = data.issueDate;
     invoice.dueDate = data.dueDate;
     invoice.subtotal = subtotal;
     invoice.tax = tax;
     invoice.discount = discount;
     invoice.total = total;
-    invoice.notes = data.notes ?? ""; // Keep existing if undefined
+    invoice.notes = data.notes ?? "";
     invoice.items = invoiceItems;
     invoice.status = InvoiceStatus.PENDING;
 
     return await this.invoiceRepository.create(invoice);
   }
 
-  async getAllInvoices(id: string, search: string): Promise<Invoice[]> {
-    return await this.invoiceRepository.findAllWithDetails(id, search);
+  async getAllInvoices(userId: number | string, search?: string): Promise<Invoice[]> {
+    return await this.invoiceRepository.findAllWithDetails(userId, search);
   }
 
-  async getInvoiceById(id: string): Promise<Invoice | null> {
+  async getInvoiceById(id: number | string): Promise<Invoice | null> {
     return await this.invoiceRepository.getInvoiceById(id);
   }
 
-  async getInvoicesByCustomer(customerId: string, userId: string): Promise<Invoice[]> {
+  async getInvoicesByCustomer(customerId: number | string, userId: number | string): Promise<Invoice[]> {
     return await this.invoiceRepository.findByCustomer(customerId, userId);
   }
 
-  async updateInvoiceStatus(id: string, status: InvoiceStatus): Promise<Invoice> {
-    const invoice = await this.invoiceRepository.findById(id);
+  async updateInvoiceStatus(id: number | string, status: InvoiceStatus): Promise<Invoice> {
+    const numericId = typeof id === 'string' ? Number(id) : id;
+    const invoice = await this.invoiceRepository.findById(numericId);
     if (!invoice) {
       throw new Error('Invoice not found');
     }
-    return await this.invoiceRepository.update(id, { status });
+    return await this.invoiceRepository.update(numericId, { status });
   }
 
-  async deleteInvoice(id: string): Promise<boolean> {
+  async deleteInvoice(id: number | string): Promise<boolean> {
     try {
+      const numericId = typeof id === 'string' ? Number(id) : id;
       // First, manually delete all invoice items
-      await AppDataSource.getRepository(InvoiceItem).delete({ invoice: { id } });
+      await AppDataSource.getRepository(InvoiceItem).delete({ invoice: { id: numericId } });
 
       // Then delete the invoice
-      const result = await this.invoiceRepository.delete(id);
+      const result = await this.invoiceRepository.delete(numericId);
 
       return result;
     } catch (error) {

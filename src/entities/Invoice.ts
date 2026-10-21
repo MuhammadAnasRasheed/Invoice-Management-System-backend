@@ -13,8 +13,8 @@ export enum InvoiceStatus {
 
 @Entity('invoices')
 export class Invoice {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'varchar', length: 50, unique: true })
   invoiceNumber!: string;
@@ -49,7 +49,7 @@ export class Invoice {
   @ManyToOne(() => Customer, (customer) => customer.invoices)
   customer!: Customer;
 
-  @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true})
+  @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true })
   items!: InvoiceItem[];
 
   @CreateDateColumn({ type: 'timestamp' })
