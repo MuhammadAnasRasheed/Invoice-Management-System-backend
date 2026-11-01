@@ -25,7 +25,7 @@ export class InvoiceRepository extends BaseRepository<Invoice> {
     };
 
     if (shopId && String(shopId) !== 'all') {
-      where.customer = { shop: { id: Number(shopId) } };
+      where.shop = { id: Number(shopId) };
     }
 
     if (search && search.trim() !== '') {
@@ -34,7 +34,7 @@ export class InvoiceRepository extends BaseRepository<Invoice> {
 
     return await this.repository.find({
       where,
-      relations: ['customer', 'customer.shop', 'items'],
+      relations: ['customer', 'shop', 'items'],
       order: { createdAt: 'DESC' }
     });
   }
@@ -48,7 +48,7 @@ export class InvoiceRepository extends BaseRepository<Invoice> {
         customer: { id: numericCustomerId },
         user: { id: numericUserId }
       } as any,
-      relations: ['customer', 'customer.shop', 'items'],
+      relations: ['customer', 'shop', 'items'],
       order: { createdAt: 'DESC' }
     });
   }
@@ -57,7 +57,7 @@ export class InvoiceRepository extends BaseRepository<Invoice> {
     const numericId = typeof id === 'string' ? Number(id) : id;
     return await this.repository.findOne({
       where: { id: numericId } as any,
-      relations: ['customer', 'customer.shop', 'items']
+      relations: ['customer', 'shop', 'items']
     });
   }
 }

@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { User } from './User';
 import { Customer } from './Customer';
 import { InvoiceItem } from './InvoiceItems';
+import { Shop } from './Shops';
 
 export enum InvoiceStatus {
   DRAFT = 'draft',
@@ -48,6 +49,10 @@ export class Invoice {
 
   @ManyToOne(() => Customer, (customer) => customer.invoices)
   customer!: Customer;
+
+  @ManyToOne(() => Shop, (shop) => shop.invoices, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'shop_id' })
+  shop?: Shop | null;
 
   @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true })
   items!: InvoiceItem[];

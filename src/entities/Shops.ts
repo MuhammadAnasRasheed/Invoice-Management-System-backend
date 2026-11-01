@@ -10,6 +10,7 @@ import {
 
 import { User } from './User';
 import { Customer } from './Customer';
+import { Invoice } from './Invoice';
 
 @Entity('shops')
 export class Shop {
@@ -35,8 +36,11 @@ export class Shop {
     @JoinColumn({ name: 'owner_id' })
     owner!: User;
 
-    @OneToMany(() => Customer, (customer) => customer.shop)
-    customers!: Customer[];
+@OneToMany(() => Customer, (customer) => customer.shop)
+  customers!: Customer[];
+
+  @OneToMany(() => Invoice, (invoice) => invoice.shop)
+  invoices!: Invoice[];
 
     @CreateDateColumn({ type: 'timestamp' })
     createdAt!: Date;

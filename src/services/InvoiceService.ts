@@ -1,5 +1,6 @@
 import { InvoiceRepository } from '../repositories/InvoiceRepository';
 import { CustomerRepository } from '../repositories/CustomerRepository';
+import { ShopRepository } from '../repositories/ShopRepository';
 import { Invoice, InvoiceStatus } from '../entities/Invoice';
 import { InvoiceItem } from '../entities/InvoiceItems';
 import { generateInvoiceNumber } from '../utils/invoiceHelper';
@@ -9,19 +10,23 @@ import { AppDataSource } from '../config/database';
 export class InvoiceService {
   private invoiceRepository: InvoiceRepository;
   private customerRepository: CustomerRepository;
+  private shopRepository: ShopRepository;
 
   constructor(
     invoiceRepo?: InvoiceRepository,
-    customerRepo?: CustomerRepository
+    customerRepo?: CustomerRepository,
+    shopRepo?: ShopRepository
   ) {
     // Dependency Injection
     this.invoiceRepository = invoiceRepo || InvoiceRepository.getInstance();
     this.customerRepository = customerRepo || CustomerRepository.getInstance();
+    this.shopRepository = shopRepo || ShopRepository.getInstance();
   }
 
   async createInvoice(data: {
     customerId: number | string;
     userId: number | string;
+    shopId?: number | string;
     items: Array<{ description: string; quantity: number; unitPrice: number }>;
     issueDate: Date;
     dueDate: Date;
@@ -67,6 +72,14 @@ export class InvoiceService {
     invoice.notes = data.notes ?? "";
     invoice.items = invoiceItems;
     invoice.status = InvoiceStatus.PENDING;
+
+    if (data.shopId) {
+      const numericShopId = typeof data.shopId === 'string' ? Number(data.shopId) : data.shopId;
+      const shop = await this.shopRepository.findById(numericShopId);
+      if (shop) {
+        invoice.shop = shop;
+      }
+    }
 
     return await this.invoiceRepository.create(invoice);
   }
