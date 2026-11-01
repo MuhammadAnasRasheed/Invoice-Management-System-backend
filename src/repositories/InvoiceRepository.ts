@@ -17,25 +17,24 @@ export class InvoiceRepository extends BaseRepository<Invoice> {
     return InvoiceRepository.instance;
   }
 
-  async findAllWithDetails(userId: number | string, search?: string): Promise<Invoice[]> {
+  async findAllWithDetails(userId: number | string, search?: string, shopId?: number | string): Promise<Invoice[]> {
     const numericUserId = typeof userId === 'string' ? Number(userId) : userId;
 
+    const where: any = {
+      user: { id: numericUserId },
+    };
+
+    if (shopId && String(shopId) !== 'all') {
+      where.customer = { shop: { id: Number(shopId) } };
+    }
+
     if (search && search.trim() !== '') {
-      return await this.repository.find({
-        where: {
-          user: { id: numericUserId },
-          invoiceNumber: ILike(`%${search}%`)
-        },
-        relations: ['customer', 'items'],
-        order: { createdAt: 'DESC' }
-      });
+      where.invoiceNumber = ILike(`%${search}%`);
     }
 
     return await this.repository.find({
-      where: {
-        user: { id: numericUserId },
-      },
-      relations: ['customer', 'items'],
+      where,
+      relations: ['customer', 'customer.shop', 'items'],
       order: { createdAt: 'DESC' }
     });
   }
@@ -49,7 +48,7 @@ export class InvoiceRepository extends BaseRepository<Invoice> {
         customer: { id: numericCustomerId },
         user: { id: numericUserId }
       } as any,
-      relations: ['items'],
+      relations: ['customer', 'customer.shop', 'items'],
       order: { createdAt: 'DESC' }
     });
   }
@@ -58,7 +57,7 @@ export class InvoiceRepository extends BaseRepository<Invoice> {
     const numericId = typeof id === 'string' ? Number(id) : id;
     return await this.repository.findOne({
       where: { id: numericId } as any,
-      relations: ['customer', 'items', 'user'],
+      relations: ['customer', 'customer.shop', 'items']
     });
   }
 }

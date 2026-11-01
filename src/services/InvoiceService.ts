@@ -71,8 +71,8 @@ export class InvoiceService {
     return await this.invoiceRepository.create(invoice);
   }
 
-  async getAllInvoices(userId: number | string, search?: string): Promise<Invoice[]> {
-    return await this.invoiceRepository.findAllWithDetails(userId, search);
+  async getAllInvoices(userId: number | string, search?: string, shopId?: number | string): Promise<Invoice[]> {
+    return await this.invoiceRepository.findAllWithDetails(userId, search, shopId);
   }
 
   async getInvoiceById(id: number | string): Promise<Invoice | null> {

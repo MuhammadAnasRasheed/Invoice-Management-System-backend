@@ -1,5 +1,6 @@
 import { CustomerRepository } from '../repositories/CustomerRepository';
 import { UserRepository } from '../repositories/UserRepository';
+import { ShopRepository } from '../repositories/ShopRepository';
 import { Customer } from '../entities/Customer';
 import { InvoiceItem } from '../entities/InvoiceItems';
 import { Invoice } from '../entities/Invoice';
@@ -8,10 +9,12 @@ import { AppDataSource } from '../config/database';
 export class CustomerService {
   private customerRepository: CustomerRepository;
   private userRepository: UserRepository;
+  private shopRepository: ShopRepository;
 
   constructor() {
     this.customerRepository = CustomerRepository.getInstance();
     this.userRepository = UserRepository.getInstance();
+    this.shopRepository = ShopRepository.getInstance();
   }
 
   async createCustomer(data: {
@@ -19,6 +22,7 @@ export class CustomerService {
     email: string;
     phone: string;
     address: string;
+    shopId?: number | string | null;
   }, userId: number | string): Promise<Customer> {
     const numericUserId = typeof userId === 'string' ? Number(userId) : userId;
 
@@ -33,17 +37,28 @@ export class CustomerService {
       throw new Error('User not found');
     }
 
-    // Create customer linked to user
+    let shop = null;
+    if (data.shopId) {
+      shop = await this.shopRepository.findByIdWithOwner(data.shopId);
+      if (!shop || Number(shop.owner.id) !== numericUserId) {
+        throw new Error('Selected shop does not exist or does not belong to you');
+      }
+    }
+
+    const { shopId, ...customerData } = data;
+
+    // Create customer linked to user and shop
     const customer = await this.customerRepository.create({
-      ...data,
-      user: user
+      ...customerData,
+      user: user,
+      shop: shop
     } as any);
 
     return customer;
   }
 
-  async getAllCustomers(userId: number | string, search?: string): Promise<Customer[]> {
-    return await this.customerRepository.findByUser(userId, search);
+  async getAllCustomers(userId: number | string, search?: string, shopId?: number | string): Promise<Customer[]> {
+    return await this.customerRepository.findByUser(userId, search, shopId);
   }
 
   async getCustomerById(id: number | string, userId: number | string): Promise<Customer | null> {
@@ -54,13 +69,30 @@ export class CustomerService {
     return customer;
   }
 
-  async updateCustomer(id: number | string, data: Partial<Customer>, userId: number | string): Promise<Customer | null> {
+  async updateCustomer(id: number | string, data: Partial<Customer> & { shopId?: number | string | null }, userId: number | string): Promise<Customer | null> {
+    const numericUserId = typeof userId === 'string' ? Number(userId) : userId;
     const customer = await this.getCustomerById(id, userId);
     if (!customer) return null;
 
+    let shopUpdate: any = {};
+    if (data.shopId !== undefined) {
+      if (data.shopId) {
+        const shop = await this.shopRepository.findByIdWithOwner(data.shopId);
+        if (!shop || Number(shop.owner.id) !== numericUserId) {
+          throw new Error('Selected shop does not exist or does not belong to you');
+        }
+        shopUpdate.shop = shop;
+      } else {
+        shopUpdate.shop = null;
+      }
+    }
+
     // Remove user field if present to prevent ownership change
-    const { user, ...cleanData } = data as any;
-    return await this.customerRepository.update(id, cleanData);
+    const { user, shopId, ...cleanData } = data as any;
+    return await this.customerRepository.update(id, {
+      ...cleanData,
+      ...shopUpdate
+    });
   }
 
   async deleteCustomer(id: number | string, userId: number | string): Promise<boolean> {
@@ -90,4 +122,3 @@ export class CustomerService {
     }
   }
 }
-

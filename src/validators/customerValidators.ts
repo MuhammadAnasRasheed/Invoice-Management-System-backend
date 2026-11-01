@@ -6,6 +6,7 @@ export const createCustomerSchema = z.object({
   email: z.string().email('Invalid email format'),
   phone: z.string().min(10, 'Phone number must be at least 10 digits'),
   address: z.string().min(5, 'Address must be at least 5 characters'),
+  shopId: z.union([z.number(), z.string()]).optional().nullable(),
 });
 
 // Update customer validation schema
@@ -14,6 +15,7 @@ export const updateCustomerSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().min(10).optional(),
   address: z.string().min(5).optional(),
+  shopId: z.union([z.number(), z.string()]).optional().nullable(),
 });
 
 // Validate create customer

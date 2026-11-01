@@ -41,8 +41,9 @@ export class InvoiceController {
       }
 
       const search = req.query.search as string;
+      const shopId = req.query.shopId as string;
 
-      const invoices = await this.invoiceService.getAllInvoices(req.user.id, search);
+      const invoices = await this.invoiceService.getAllInvoices(req.user.id, search, shopId);
 
       res.status(200).json({
         success: true,

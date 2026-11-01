@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { CustomerService } from '../services/CustomerService';
 import { validateCreateCustomer, validateUpdateCustomer } from '../validators/customerValidators';
 import { AuthRequest } from '../middleware/auth';
@@ -48,8 +48,9 @@ export class CustomerController {
       }
 
       const search = req.query.search as string;
+      const shopId = req.query.shopId as string;
 
-      const customers = await this.customerService.getAllCustomers(req.user.id,search);
+      const customers = await this.customerService.getAllCustomers(req.user.id, search, shopId);
       
       res.status(200).json({
         success: true,

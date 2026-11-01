@@ -21,23 +21,23 @@ export class CustomerRepository extends BaseRepository<Customer> {
     return customers[0] || null;
   }
 
-  async findByUser(userId: number | string, search?: string): Promise<Customer[]> {
+  async findByUser(userId: number | string, search?: string, shopId?: number | string): Promise<Customer[]> {
     const numericUserId = typeof userId === 'string' ? Number(userId) : userId;
+    const where: any = {
+      user: { id: numericUserId }
+    };
+
+    if (shopId && String(shopId) !== 'all') {
+      where.shop = { id: Number(shopId) };
+    }
 
     if (search && search.trim() !== '') {
-      return await this.repository.find({
-        where: {
-          user: { id: numericUserId },
-          name: ILike(`%${search}%`)
-        },
-        order: { createdAt: 'DESC' }
-      });
+      where.name = ILike(`%${search}%`);
     }
 
     return await this.repository.find({
-      where: {
-        user: { id: numericUserId }
-      },
+      where,
+      relations: ['shop'],
       order: { createdAt: 'DESC' }
     });
   }
@@ -49,6 +49,7 @@ export class CustomerRepository extends BaseRepository<Customer> {
         user: { id: numericUserId },
         name: Like(`%${searchTerm}%`)
       } as any,
+      relations: ['shop'],
       order: { name: 'ASC' }
     });
   }
@@ -57,8 +58,7 @@ export class CustomerRepository extends BaseRepository<Customer> {
     const numericId = typeof id === 'string' ? Number(id) : id;
     return await this.repository.findOne({
       where: { id: numericId } as any,
-      relations: ['user']
+      relations: ['user', 'shop']
     });
   }
 }
-

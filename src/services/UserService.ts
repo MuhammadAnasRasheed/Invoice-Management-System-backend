@@ -34,6 +34,9 @@ export class UserService {
       name: data.name,
       email: data.email,
       password: hashedPassword,
+      updatedBy:null,
+      updatedAt:null,
+      deletedBy:null
     });
 
     // Generate JWT token
